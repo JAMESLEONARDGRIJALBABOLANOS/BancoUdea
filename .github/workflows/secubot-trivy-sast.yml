@@ -1,0 +1,123 @@
+name: SecuBot Trivy SAST
+
+on:
+  push:
+    branches:
+      - main
+      - dev
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  security-events: write
+
+env:
+  TRIVY_SEVERITY: UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL
+  ARTIFACT_RETENTION_DAYS: 30
+
+jobs:
+  trivy-sast-scan:
+    name: Trivy Security Scan
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Run Trivy vulnerability scanner (JSON)
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'json'
+          output: 'trivy_report.json'
+          severity: ${{ env.TRIVY_SEVERITY }}
+          scanners: 'vuln,secret,config'
+          exit-code: '0'
+
+      - name: Run Trivy vulnerability scanner (SARIF)
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy_results.sarif'
+          severity: ${{ env.TRIVY_SEVERITY }}
+          scanners: 'vuln,secret,config'
+          exit-code: '0'
+
+      - name: Normalize Trivy results
+        run: |
+          python scripts/normalize_trivy.py \
+            trivy_report.json \
+            "${{ github.repository }}" \
+            "${{ github.ref_name }}" \
+            "${{ github.sha }}"
+
+      - name: Display scan summary
+        if: always()
+        run: |
+          if [ -f trivy_normalized.json ]; then
+            echo "Scan completed successfully"
+            python3 -c "
+          import json
+          with open('trivy_normalized.json', 'r') as f:
+              data = json.load(f)
+              summary = data['summary']
+              print('=== SCAN SUMMARY ===')
+              print(f'Total Vulnerabilities: {summary[\"total_vulnerabilities\"]}')
+              print(f'Critical: {summary[\"by_severity\"][\"CRITICAL\"]}')
+              print(f'High: {summary[\"by_severity\"][\"HIGH\"]}')
+              print(f'Medium: {summary[\"by_severity\"][\"MEDIUM\"]}')
+              print(f'Low: {summary[\"by_severity\"][\"LOW\"]}')
+              print(f'Code Vulnerabilities: {summary[\"by_type\"][\"code_vulnerabilities\"]}')
+              print(f'Secrets: {summary[\"by_type\"][\"secrets\"]}')
+              print(f'IaC Misconfigurations: {summary[\"by_type\"][\"iac_misconfigurations\"]}')
+            "
+          else
+            echo "Normalized report not found"
+          fi
+
+      - name: Upload Trivy results as artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: trivy-scan-results
+          path: |
+            trivy_report.json
+            trivy_results.sarif
+            trivy_normalized.json
+          retention-days: ${{ env.ARTIFACT_RETENTION_DAYS }}
+
+      - name: Upload SARIF to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: trivy_results.sarif
+          category: trivy-sast
+
+      - name: Check for critical vulnerabilities
+        run: |
+          if [ -f trivy_normalized.json ]; then
+            CRITICAL=$(python3 -c "
+          import json
+          with open('trivy_normalized.json', 'r') as f:
+              data = json.load(f)
+              print(data['summary']['by_severity']['CRITICAL'])
+          ")
+            if [ "$CRITICAL" -gt 0 ]; then
+              echo "WARNING: Found $CRITICAL critical vulnerabilities"
+              echo "Review the Security tab for details"
+            fi
+          fi
