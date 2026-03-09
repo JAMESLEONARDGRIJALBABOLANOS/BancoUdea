@@ -1,0 +1,3 @@
+# Python dependencies for Trivy SAST Service
+# The normalize_trivy.py script uses only Python standard library
+# This file is required for GitHub Actions pip cache
