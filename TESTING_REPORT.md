@@ -10,8 +10,9 @@
 3. [Pruebas Unitarias — JUnit 5 + Mockito](#3-pruebas-unitarias--junit-5--mockito)
 4. [Cucumber + Gherkin — Pruebas BDD](#4-cucumber--gherkin--pruebas-bdd)
 5. [Karate — Pruebas de API REST](#5-karate--pruebas-de-api-rest)
-6. [Comparativa Final](#6-comparativa-final)
-7. [Lección Final](#7-lección-final)
+6. [Análisis de Calidad — SonarCloud](#6-análisis-de-calidad--sonarcloud)
+7. [Comparativa Final](#7-comparativa-final)
+8. [Lección Final](#8-lección-final)
 
 ---
 
@@ -290,7 +291,24 @@ void transferMoney_lanzaExcepcionSiSaldoInsuficiente() {
 }
 ```
 
-### 3.7 Resultado de ejecución
+### 3.7 Test de contexto de Spring Boot
+
+Existe además un test de arranque básico que verifica que el contexto de Spring Boot carga correctamente:
+
+```java
+@SpringBootTest
+class BancoudeaApplicationTests {
+
+    @Test
+    void contextLoads() {
+        // Verifica que todos los beans se inicializan sin errores
+    }
+}
+```
+
+Este test **sí requiere BD** (usa `@SpringBootTest` que levanta el contexto completo) y detecta errores de configuración como propiedades mal definidas, beans en conflicto o dependencias circulares.
+
+### 3.8 Resultado de ejecución
 
 ```
 ┌─────────────────────────────────┬───────┬────────┐
@@ -298,11 +316,12 @@ void transferMoney_lanzaExcepcionSiSaldoInsuficiente() {
 ├─────────────────────────────────┼───────┼────────┤
 │ CustomerServiceTest             │   9   │  PASS  │
 │ TransactionServiceTest          │   7   │  PASS  │
+│ BancoudeaApplicationTests       │   1   │  PASS  │
 ├─────────────────────────────────┼───────┼────────┤
-│ TOTAL                           │  16   │  PASS  │
+│ TOTAL                           │  17   │  PASS  │
 └─────────────────────────────────┴───────┴────────┘
-Tiempo de ejecución: ~0.9 segundos
-Conexión a BD: NO requerida
+Tiempo de ejecución unitarias: ~0.9 segundos (sin BD)
+Tiempo contextLoads:           ~3-5 segundos (con BD)
 ```
 
 ---
@@ -670,9 +689,89 @@ Reporte:  target/karate-reports/
 
 ---
 
-## 6. Comparativa Final
+## 6. Análisis de Calidad — SonarCloud
 
-### 6.1 Tabla maestra
+### 6.1 ¿Qué es SonarCloud?
+
+SonarCloud es una herramienta de análisis estático de código. Analiza el código fuente **sin ejecutarlo** y detecta:
+
+- **Bugs**: código que puede fallar en tiempo de ejecución
+- **Code smells**: código que funciona pero es difícil de mantener
+- **Vulnerabilidades**: patrones de seguridad riesgosos
+- **Cobertura**: qué porcentaje del código está cubierto por tests
+
+> **Analogía:** Si JUnit, Cucumber y Karate son los inspectores que prueban el puente con carga real, SonarCloud es el arquitecto que revisa los planos antes de construir y señala dónde las vigas están mal calculadas.
+
+### 6.2 Pipeline CI/CD — `.github/workflows/sonarcloud.yml`
+
+El proyecto tiene un workflow de GitHub Actions que ejecuta el análisis automáticamente:
+
+```yaml
+name: SonarCloud Analysis
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  sonarcloud:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # necesario para análisis completo de historial
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Build with Maven
+        run: mvn clean verify -DskipTests
+
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarqube-scan-action@v5
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+```
+
+### 6.3 ¿Cuándo se ejecuta?
+
+| Evento | Acción |
+|---|---|
+| `git push` a `main` o `develop` | Análisis automático completo |
+| Pull Request abierto/actualizado | Análisis del código nuevo con comentarios en el PR |
+
+### 6.4 ¿Qué analiza en este proyecto?
+
+```
+BancoUdea/
+├── src/main/java/          ← Código de producción analizado
+│   ├── controller/         ← ¿Hay endpoints sin validación?
+│   ├── service/            ← ¿Hay lógica duplicada?
+│   └── repository/         ← ¿Hay queries riesgosas?
+└── src/test/java/          ← ¿Los tests tienen buena cobertura?
+```
+
+### 6.5 Diferencia con los tests
+
+```
+Tests (JUnit/Cucumber/Karate):          SonarCloud:
+────────────────────────────            ─────────────────────────────
+Prueban comportamiento en runtime       Analiza el código estáticamente
+"¿El sistema hace lo que debe?"         "¿El código está bien escrito?"
+Requieren ejecutar la app               No requiere ejecutar nada
+Detectan bugs funcionales               Detecta bugs potenciales, deuda técnica
+```
+
+---
+
+## 7. Comparativa Final
+
+### 7.1 Tabla maestra
 
 | Criterio | JUnit + Mockito | Cucumber + Gherkin | Karate |
 |---|---|---|---|
@@ -685,7 +784,7 @@ Reporte:  target/karate-reports/
 | **Detecta** | Bugs de lógica | Bugs de integración | Bugs de contrato HTTP |
 | **Tests implementados** | **16** | **9** | **8** |
 
-### 6.2 Cuándo usar cada uno
+### 7.2 Cuándo usar cada uno
 
 ```
 ¿Cambié la lógica del servicio?        → JUnit + Mockito primero
@@ -693,27 +792,29 @@ Reporte:  target/karate-reports/
 ¿Cambié un endpoint o el JSON?         → Karate al final
 ```
 
-### 6.3 Resumen total del proyecto
+### 7.3 Resumen total del proyecto
 
 ```
 ╔══════════════════════════════════════════════════╗
 ║         RESUMEN DE TESTING — BANCOUDEA           ║
 ╠══════════════════════════════════════════════════╣
 ║  JUnit + Mockito    │  16 tests  │  PASS  ✓      ║
+║  Spring Context     │   1 test   │  PASS  ✓      ║
 ║  Cucumber/Gherkin   │   9 tests  │  PASS  ✓      ║
 ║  Karate             │   8 tests  │  API*  ✓      ║
 ╠══════════════════════════════════════════════════╣
-║  TOTAL              │  33 tests                  ║
+║  TOTAL              │  34 tests                  ║
 ╠══════════════════════════════════════════════════╣
 ║  * Requiere: mvn spring-boot:run activo          ║
 ╚══════════════════════════════════════════════════╝
 ```
 
-### 6.4 Estructura de archivos creados
+### 7.4 Estructura de archivos creados
 
 ```
 src/test/
 ├── java/com/udea/bancoudea/
+│   ├── BancoudeaApplicationTests.java    ← 1 context load test (Spring)
 │   ├── service/
 │   │   ├── CustomerServiceTest.java      ← 9 unit tests
 │   │   └── TransactionServiceTest.java   ← 7 unit tests
@@ -731,11 +832,15 @@ src/test/
     └── features/
         ├── customer.feature              ← 5 escenarios BDD
         └── transaction.feature           ← 4 escenarios BDD
+
+.github/
+└── workflows/
+    └── sonarcloud.yml                    ← CI/CD análisis de calidad
 ```
 
 ---
 
-## 7. Lección Final
+## 8. Lección Final
 
 La pregunta que siempre surge es: **¿Con cuál me quedo?**
 
@@ -753,10 +858,11 @@ Si solo usas Karate:
   → Sabes que la API responde bien pero si falla no sabes
     si es el Service, el Repository o la BD.
 
-Usando los tres:
+Usando los tres + SonarCloud:
   → Cada herramienta protege una capa específica.
   → Cuando algo falla, el nivel que falla te dice dónde buscar.
-  → Los 33 tests juntos dan confianza total en el sistema.
+  → SonarCloud atrapa deuda técnica antes de que llegue a producción.
+  → Los 34 tests juntos dan confianza total en el sistema.
 ```
 
 ### Pirámide aplicada a BancoUdea
@@ -766,8 +872,10 @@ Usando los tres:
        /──────────\        → Valida el contrato HTTP de la API
       /  Cucumber  \
      /─────────────\       → Valida la integración con MySQL
-    /  JUnit (16)   \
-   /─────────────────\     → Valida la lógica de negocio aislada
+    /  JUnit (17)   \
+   /─────────────────\     → Valida lógica de negocio + contexto Spring
+
+SonarCloud (CI/CD) ──────► Análisis estático continuo en cada push
 ```
 
 > Entre más abajo en la pirámide, más pruebas hay, más rápidas son y más baratas de mantener. Esta es la distribución ideal para cualquier proyecto de software.
@@ -775,4 +883,4 @@ Usando los tres:
 ---
 
 *Reporte generado para el proyecto BancoUdea — Spring Boot 3.4.1 / Java 17*
-*Stack de testing: JUnit 5 · Mockito · Cucumber 7.20.1 · Karate 1.4.1*
+*Stack de testing: JUnit 5 · Mockito · Cucumber 7.20.1 · Karate 1.4.1 · SonarCloud*
