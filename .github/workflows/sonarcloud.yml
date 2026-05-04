@@ -58,9 +58,9 @@ jobs:
           MAVEN_OPTS: "-Xmx2g"
           SPRING_PROFILES_ACTIVE: test
 
-      # 7. Ejecutar análisis SonarCloud
+      # 7. Ejecutar análisis SonarCloud via Maven (detecta binarios y cobertura automáticamente)
       - name: SonarCloud Scan
-        uses: SonarSource/sonarqube-scan-action@v6
+        run: ./mvnw sonar:sonar -Dspring.profiles.active=test
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
