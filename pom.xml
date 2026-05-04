@@ -126,7 +126,7 @@
 		<dependency>
 			<groupId>com.h2database</groupId>
 			<artifactId>h2</artifactId>
-			<scope>test</scope>
+			<scope>runtime</scope>
 		</dependency>
 
 		<!-- Cucumber -->
@@ -182,6 +182,20 @@
 	</dependencies>
 
 	<build>
+		<testResources>
+			<testResource>
+				<directory>src/test/resources</directory>
+			</testResource>
+			<testResource>
+				<directory>src/test/java</directory>
+				<includes>
+					<include>**/*.feature</include>
+					<include>**/*.json</include>
+					<include>**/*.yml</include>
+					<include>**/*.js</include>
+				</includes>
+			</testResource>
+		</testResources>
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -312,6 +326,22 @@
 						</exclude>
 					</excludes>
 				</configuration>
+				<executions>
+					<execution>
+						<id>pre-integration-test</id>
+						<goals><goal>start</goal></goals>
+						<configuration>
+							<profiles>
+								<profile>test</profile>
+							</profiles>
+							<jvmArguments>-Dspring.devtools.restart.enabled=false</jvmArguments>
+						</configuration>
+					</execution>
+					<execution>
+						<id>post-integration-test</id>
+						<goals><goal>stop</goal></goals>
+					</execution>
+				</executions>
 			</plugin>
 		</plugins>
 	</build>
