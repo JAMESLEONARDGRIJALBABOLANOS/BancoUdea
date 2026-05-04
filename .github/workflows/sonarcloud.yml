@@ -51,17 +51,12 @@ jobs:
         with:
           python-version: '3.11'
 
-      # 6. Compilar y ejecutar tests + generar cobertura JaCoCo
-      - name: Build and run tests with coverage
-        run: ./mvnw clean verify
+      # 6. Compilar, testear, generar JaCoCo y enviar a SonarCloud en un solo paso
+      - name: Build, Test & SonarCloud Analysis
+        run: ./mvnw clean verify sonar:sonar -Dspring.profiles.active=test
         env:
           MAVEN_OPTS: "-Xmx2g"
           SPRING_PROFILES_ACTIVE: test
-
-      # 7. Ejecutar análisis SonarCloud via Maven (detecta binarios y cobertura automáticamente)
-      - name: SonarCloud Scan
-        run: ./mvnw sonar:sonar -Dspring.profiles.active=test
-        env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: https://sonarcloud.io
