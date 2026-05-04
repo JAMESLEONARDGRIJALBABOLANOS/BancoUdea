@@ -56,6 +56,7 @@ jobs:
         run: ./mvnw clean verify
         env:
           MAVEN_OPTS: "-Xmx2g"
+          SPRING_PROFILES_ACTIVE: test
 
       # 7. Ejecutar análisis SonarCloud
       - name: SonarCloud Scan
