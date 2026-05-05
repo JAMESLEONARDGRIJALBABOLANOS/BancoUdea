@@ -15,20 +15,17 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. Checkout con historial completo (SonarCloud lo necesita para blame)
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      # 2. Configurar Java 17
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
 
-      # 3. Cache de dependencias Maven
       - name: Cache Maven packages
         uses: actions/cache@v4
         with:
@@ -37,7 +34,6 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-maven-
 
-      # 4. Cache de SonarCloud
       - name: Cache SonarCloud packages
         uses: actions/cache@v4
         with:
@@ -45,21 +41,27 @@ jobs:
           key: ${{ runner.os }}-sonar
           restore-keys: ${{ runner.os }}-sonar
 
-      # 5. Compilar, ejecutar todos los tests y generar reportes JaCoCo.
-      #    continue-on-error: true garantiza que el análisis de Sonar siempre corra,
-      #    incluso si los integration tests (Karate) fallan en CI.
-      - name: Build & Test
-        run: ./mvnw clean verify -Dspring.profiles.active=test
+      # Unit tests + JaCoCo report + Sonar en una sola sesión Maven.
+      # -DskipITs evita que Spring Boot arranque y que Karate corra
+      # (los tests Karate son HTTP black-box y nunca generan cobertura real).
+      - name: Build, Unit Tests & SonarCloud Analysis
+        run: >
+          ./mvnw clean test
+          org.sonarsource.scanner.maven:sonar-maven-plugin:3.11.0.3922:sonar
+          -DskipITs
+          -Dspring.profiles.active=test
+        env:
+          MAVEN_OPTS: "-Xmx2g"
+          SPRING_PROFILES_ACTIVE: test
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: https://sonarcloud.io
+
+      # Integration tests como paso separado (informativo, no bloquea el CI)
+      # -DskipTests omite surefire pero failsafe (Karate) sí corre
+      - name: Integration Tests (Karate)
+        run: ./mvnw verify -DskipTests -Dspring.profiles.active=test
         continue-on-error: true
         env:
           MAVEN_OPTS: "-Xmx2g"
           SPRING_PROFILES_ACTIVE: test
-
-      # 6. Enviar análisis a SonarCloud con los reportes JaCoCo disponibles
-      - name: SonarCloud Analysis
-        run: ./mvnw sonar:sonar -Dspring.profiles.active=test
-        env:
-          MAVEN_OPTS: "-Xmx2g"
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_HOST_URL: https://sonarcloud.io
