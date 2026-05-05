@@ -53,7 +53,7 @@ jobs:
 
       # 6. Compilar, testear, generar JaCoCo y enviar a SonarCloud en un solo paso
       - name: Build, Test & SonarCloud Analysis
-        run: ./mvnw clean verify sonar:sonar -Dspring.profiles.active=test -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml,target/site/jacoco-it/jacoco.xml
+        run: ./mvnw clean verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dspring.profiles.active=test
         env:
           MAVEN_OPTS: "-Xmx2g"
           SPRING_PROFILES_ACTIVE: test
