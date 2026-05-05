@@ -41,24 +41,23 @@ jobs:
           key: ${{ runner.os }}-sonar
           restore-keys: ${{ runner.os }}-sonar
 
-      # Unit tests + JaCoCo report + Sonar en una sola sesión Maven.
-      # -DskipITs evita que Spring Boot arranque y que Karate corra
-      # (los tests Karate son HTTP black-box y nunca generan cobertura real).
-      - name: Build, Unit Tests & SonarCloud Analysis
-        run: >
-          ./mvnw clean test
-          org.sonarsource.scanner.maven:sonar-maven-plugin:3.11.0.3922:sonar
-          -DskipITs
-          -Dspring.profiles.active=test
+      # Compila, ejecuta unit tests y genera el reporte JaCoCo.
+      # -DskipITs omite Spring Boot + Karate (no aportan cobertura real).
+      - name: Build & Unit Tests
+        run: ./mvnw clean test -DskipITs -Dspring.profiles.active=test
         env:
           MAVEN_OPTS: "-Xmx2g"
           SPRING_PROFILES_ACTIVE: test
+
+      # Análisis con la GitHub Action oficial de SonarCloud.
+      # Lee la configuración desde sonar-project.properties.
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@master
+        env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_HOST_URL: https://sonarcloud.io
 
-      # Integration tests como paso separado (informativo, no bloquea el CI)
-      # -DskipTests omite surefire pero failsafe (Karate) sí corre
+      # Integration tests (Karate) — informativo, no bloquea el CI
       - name: Integration Tests (Karate)
         run: ./mvnw verify -DskipTests -Dspring.profiles.active=test
         continue-on-error: true
