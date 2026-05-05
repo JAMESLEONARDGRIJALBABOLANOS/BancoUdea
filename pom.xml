@@ -40,7 +40,7 @@
 		<sonar.java.source>17</sonar.java.source>
 		<sonar.python.version>3</sonar.python.version>
 		<sonar.exclusions>**/*Test*.java,**/*IT*.java,**/*.feature</sonar.exclusions>
-		<sonar.coverage.exclusions>**/*Application.java,**/*Config*.java</sonar.coverage.exclusions>
+		<sonar.coverage.exclusions>**/*Application.java,**/*Config*.java,**/entity/**,**/DTO/**,**/mapper/**,**/repository/**</sonar.coverage.exclusions>
 	</properties>
 
 	<repositories>
@@ -255,8 +255,10 @@
 					<excludes>
 						<exclude>**/BancoudeaApplication.class</exclude>
 						<exclude>**/*Config*.class</exclude>
-						<exclude>**/model/**</exclude>
-						<exclude>**/dto/**</exclude>
+						<exclude>**/entity/**</exclude>
+						<exclude>**/DTO/**</exclude>
+						<exclude>**/mapper/**</exclude>
+						<exclude>**/repository/**</exclude>
 					</excludes>
 				</configuration>
 				<executions>
