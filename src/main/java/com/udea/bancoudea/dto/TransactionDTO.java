@@ -1,9 +1,15 @@
 package com.udea.bancoudea.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class TransactionDTO {
     private Long id;
@@ -11,26 +17,4 @@ public class TransactionDTO {
     private String receiverAccountNumber;
     private Double amount;
     private LocalDateTime timestamp;
-
-    public TransactionDTO() {
-    }
-
-    public TransactionDTO(Long id, String senderAccountNumber, String receiverAccountNumber, Double amount, LocalDateTime timestamp) {
-        this.id = id;
-        this.senderAccountNumber = senderAccountNumber;
-        this.receiverAccountNumber = receiverAccountNumber;
-        this.amount = amount;
-        this.timestamp = timestamp;
-    }
-
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
-    public String getSenderAccountNumber() { return senderAccountNumber; }
-    public void setSenderAccountNumber(String senderAccountNumber) { this.senderAccountNumber = senderAccountNumber; }
-    public String getReceiverAccountNumber() { return receiverAccountNumber; }
-    public void setReceiverAccountNumber(String receiverAccountNumber) { this.receiverAccountNumber = receiverAccountNumber; }
-    public Double getAmount() { return amount; }
-    public void setAmount(Double amount) { this.amount = amount; }
-    public LocalDateTime getTimestamp() { return timestamp; }
-    public void setTimestamp(LocalDateTime timestamp) { this.timestamp = timestamp; }
 }
