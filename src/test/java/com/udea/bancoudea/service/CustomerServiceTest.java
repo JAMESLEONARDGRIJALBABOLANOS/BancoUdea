@@ -131,7 +131,7 @@ class CustomerServiceTest {
 
     @Test
     void deleteCustomer_eliminaClienteExistente() {
-        when(customerRepository.existsById(1L)).thenReturn(true);
+        when(customerRepository.findById(1L)).thenReturn(Optional.of(customer));
 
         assertDoesNotThrow(() -> customerService.deleteCustomer(1L));
         verify(customerRepository).deleteById(1L);
@@ -139,7 +139,7 @@ class CustomerServiceTest {
 
     @Test
     void deleteCustomer_lanzaExcepcionSiClienteNoExiste() {
-        when(customerRepository.existsById(99L)).thenReturn(false);
+        when(customerRepository.findById(99L)).thenReturn(Optional.empty());
 
         RuntimeException ex = assertThrows(RuntimeException.class,
                 () -> customerService.deleteCustomer(99L));

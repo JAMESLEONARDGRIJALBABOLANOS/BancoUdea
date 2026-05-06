@@ -23,41 +23,41 @@ public class TransactionService {
     private final TransactionMapper transactionMapper = TransactionMapper.INSTANCE;
 
     public TransactionDTO transferMoney(TransactionDTO transactionDTO) {
-        //validar que los numeros de cuenta no sean nulos
-        if(transactionDTO.getSenderAccountNumber()==null || transactionDTO.getReceiverAccountNumber()==null){
-            throw new IllegalArgumentException("Sender Account Number or Receiver Account Number cannot be null");
-        }
+        validateAccountNumbers(transactionDTO);
 
-        //Buscar los clientes por numero de cuenta
         Customer sender = customerRepository.findByAccountNumber(transactionDTO.getSenderAccountNumber())
-                .orElseThrow(()-> new IllegalArgumentException("Sender Account Number not found"));
-
+                .orElseThrow(() -> new IllegalArgumentException("Sender Account Number not found"));
         Customer receiver = customerRepository.findByAccountNumber(transactionDTO.getReceiverAccountNumber())
-                .orElseThrow(()-> new IllegalArgumentException("Receiver Account Number not found"));
+                .orElseThrow(() -> new IllegalArgumentException("Receiver Account Number not found"));
 
-        //Validar que el remitente tenga saldo suficiente
-        if(sender.getBalance() < transactionDTO.getAmount()){
-            throw new IllegalArgumentException("Sender Balance not enough");
-        }
+        validateBalance(sender, transactionDTO.getAmount());
 
-        //realiza la transferencia
         sender.setBalance(sender.getBalance() - transactionDTO.getAmount());
         receiver.setBalance(receiver.getBalance() + transactionDTO.getAmount());
-
-        //Guardar los cambios en las cuentas
         customerRepository.save(sender);
         customerRepository.save(receiver);
 
-        //Crear y guardar la transaccion
         Transaction transaction = new Transaction();
         transaction.setSenderAccountNumber(sender.getAccountNumber());
         transaction.setReceiverAccountNumber(receiver.getAccountNumber());
         transaction.setAmount(transactionDTO.getAmount());
         transaction.setTimestamp(java.time.LocalDateTime.now());
-        transaction= transactionRepository.save(transaction);
+        return transactionMapper.toDTO(transactionRepository.save(transaction));
+    }
 
-        return transactionMapper.toDTO(transaction);
+    private void validateAccountNumbers(TransactionDTO dto) {
+        if (dto.getSenderAccountNumber() == null) {
+            throw new IllegalArgumentException("Sender Account Number cannot be null");
+        }
+        if (dto.getReceiverAccountNumber() == null) {
+            throw new IllegalArgumentException("Receiver Account Number cannot be null");
+        }
+    }
 
+    private void validateBalance(Customer sender, Double amount) {
+        if (sender.getBalance() < amount) {
+            throw new IllegalArgumentException("Sender Balance not enough");
+        }
     }
 
     public List<TransactionDTO> getTransactionsForAccount(String accountNumber) {

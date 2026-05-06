@@ -32,9 +32,6 @@ public class CustomerController {
 //Crear un nuevo cliente
     @PostMapping
     public ResponseEntity<CustomerDTO> createCustomer(@RequestBody CustomerDTO customerDTO) {
-        if(customerDTO.getBalance() == null) {
-            throw new IllegalArgumentException("Balance cannot be null");
-        }
         return ResponseEntity.status(HttpStatus.CREATED).body(customerFacade.createCustomer(customerDTO));
     }
 

@@ -93,6 +93,8 @@ class CustomerControllerTest {
     @Test
     void createCustomer_retorna400CuandoBalanceNulo() throws Exception {
         CustomerDTO sinBalance = new CustomerDTO(null, "Juan", "Perez", "ACC-001", null);
+        when(customerService.createCustomer(any(CustomerDTO.class)))
+                .thenThrow(new IllegalArgumentException("Balance cannot be null"));
 
         mockMvc.perform(post("/api/customers")
                         .contentType(MediaType.APPLICATION_JSON)

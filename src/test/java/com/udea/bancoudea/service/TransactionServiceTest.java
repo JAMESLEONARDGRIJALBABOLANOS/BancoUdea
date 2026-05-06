@@ -109,15 +109,26 @@ class TransactionServiceTest {
     }
 
     @Test
-    void transferMoney_lanzaExcepcionSiCuentasNulas() {
+    void transferMoney_lanzaExcepcionSiSenderNulo() {
         TransactionDTO dto = new TransactionDTO();
         dto.setAmount(100.0);
-        // senderAccountNumber y receiverAccountNumber son null
 
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
                 () -> transactionService.transferMoney(dto));
 
-        assertEquals("Sender Account Number or Receiver Account Number cannot be null", ex.getMessage());
+        assertEquals("Sender Account Number cannot be null", ex.getMessage());
+    }
+
+    @Test
+    void transferMoney_lanzaExcepcionSiReceiverNulo() {
+        TransactionDTO dto = new TransactionDTO();
+        dto.setSenderAccountNumber("ACC-001");
+        dto.setAmount(100.0);
+
+        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
+                () -> transactionService.transferMoney(dto));
+
+        assertEquals("Receiver Account Number cannot be null", ex.getMessage());
     }
 
     // --- getTransactionsForAccount ---
