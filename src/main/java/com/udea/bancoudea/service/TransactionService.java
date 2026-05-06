@@ -3,6 +3,7 @@ package com.udea.bancoudea.service;
 import com.udea.bancoudea.dto.TransactionDTO;
 import com.udea.bancoudea.entity.Customer;
 import com.udea.bancoudea.entity.Transaction;
+import com.udea.bancoudea.mapper.TransactionMapper;
 import com.udea.bancoudea.repository.CustomerRepository;
 import com.udea.bancoudea.repository.TransactionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +19,8 @@ public class TransactionService {
 
     @Autowired
     private CustomerRepository customerRepository;
+
+    private final TransactionMapper transactionMapper = TransactionMapper.INSTANCE;
 
     public TransactionDTO transferMoney(TransactionDTO transactionDTO) {
         //validar que los numeros de cuenta no sean nulos
@@ -53,28 +56,13 @@ public class TransactionService {
         transaction.setTimestamp(java.time.LocalDateTime.now());
         transaction= transactionRepository.save(transaction);
 
-        //Devolver la transaccion creada como un DTO
-        TransactionDTO  savedTransaction = new TransactionDTO();
-        savedTransaction.setId(transaction.getId());
-        savedTransaction.setSenderAccountNumber(transaction.getSenderAccountNumber());
-        savedTransaction.setReceiverAccountNumber(transaction.getReceiverAccountNumber());
-        savedTransaction.setAmount(transaction.getAmount());
-        savedTransaction.setTimestamp(transaction.getTimestamp());
-        return savedTransaction;
+        return transactionMapper.toDTO(transaction);
 
     }
 
     public List<TransactionDTO> getTransactionsForAccount(String accountNumber) {
         List<Transaction> transactions = transactionRepository.findBySenderAccountNumberOrReceiverAccountNumber(accountNumber,accountNumber);
-        return transactions.stream().map(transaction -> {
-            TransactionDTO dto = new TransactionDTO();
-            dto.setId(transaction.getId());
-            dto.setSenderAccountNumber(transaction.getSenderAccountNumber());
-            dto.setReceiverAccountNumber(transaction.getReceiverAccountNumber());
-            dto.setAmount(transaction.getAmount());
-            dto.setTimestamp(transaction.getTimestamp());
-            return dto;
-        }).toList();
+        return transactions.stream().map(transactionMapper::toDTO).toList();
     }
 
 }
