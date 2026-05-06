@@ -1,6 +1,6 @@
 package com.udea.bancoudea.controller;
 
-import com.udea.bancoudea.DTO.TransactionDTO;
+import com.udea.bancoudea.dto.TransactionDTO;
 import com.udea.bancoudea.service.TransactionService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

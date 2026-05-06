@@ -1,6 +1,6 @@
 package com.udea.bancoudea.service;
 
-import com.udea.bancoudea.DTO.CustomerDTO;
+import com.udea.bancoudea.dto.CustomerDTO;
 import com.udea.bancoudea.entity.Customer;
 import com.udea.bancoudea.mapper.CustomerMapper;
 import com.udea.bancoudea.repository.CustomerRepository;
@@ -81,7 +81,7 @@ class CustomerServiceTest {
         RuntimeException ex = assertThrows(RuntimeException.class,
                 () -> customerService.getCustomerById(99L));
 
-        assertEquals("Cliente no encontrado", ex.getMessage());
+        assertEquals("Cliente no encontrado con id: 99", ex.getMessage());
     }
 
     // --- createCustomer ---
@@ -124,7 +124,7 @@ class CustomerServiceTest {
         RuntimeException ex = assertThrows(RuntimeException.class,
                 () -> customerService.updateCustomer(99L, customerDTO));
 
-        assertEquals("Cliente no encontrado", ex.getMessage());
+        assertEquals("Cliente no encontrado con id: 99", ex.getMessage());
     }
 
     // --- deleteCustomer ---
@@ -144,7 +144,7 @@ class CustomerServiceTest {
         RuntimeException ex = assertThrows(RuntimeException.class,
                 () -> customerService.deleteCustomer(99L));
 
-        assertEquals("Cliente no encontrado", ex.getMessage());
+        assertEquals("Cliente no encontrado con id: 99", ex.getMessage());
         verify(customerRepository, never()).deleteById(any());
     }
 }

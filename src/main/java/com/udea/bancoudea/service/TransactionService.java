@@ -1,6 +1,6 @@
 package com.udea.bancoudea.service;
 
-import com.udea.bancoudea.DTO.TransactionDTO;
+import com.udea.bancoudea.dto.TransactionDTO;
 import com.udea.bancoudea.entity.Customer;
 import com.udea.bancoudea.entity.Transaction;
 import com.udea.bancoudea.repository.CustomerRepository;
@@ -9,7 +9,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class TransactionService {
@@ -75,7 +74,7 @@ public class TransactionService {
             dto.setAmount(transaction.getAmount());
             dto.setTimestamp(transaction.getTimestamp());
             return dto;
-        }).collect(Collectors.toList());
+        }).toList();
     }
 
 }

@@ -1,7 +1,8 @@
 package com.udea.bancoudea.service;
 
-import com.udea.bancoudea.DTO.CustomerDTO;
+import com.udea.bancoudea.dto.CustomerDTO;
 import com.udea.bancoudea.entity.Customer;
+import com.udea.bancoudea.exception.CustomerNotFoundException;
 import com.udea.bancoudea.mapper.CustomerMapper;
 import com.udea.bancoudea.repository.CustomerRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,7 +29,7 @@ public class CustomerService {
 
     public CustomerDTO getCustomerById(Long id){
         return customerRepository.findById(id).map(customerMapper::toDTO)
-                .orElseThrow(()->new RuntimeException("Cliente no encontrado"));
+                .orElseThrow(() -> new CustomerNotFoundException(id));
     }
 
     public CustomerDTO createCustomer(CustomerDTO customerDTO){
@@ -38,7 +39,7 @@ public class CustomerService {
 
     public CustomerDTO updateCustomer(Long id, CustomerDTO customerDTO){
         Customer existingCustomer = customerRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Cliente no encontrado"));
+                .orElseThrow(() -> new CustomerNotFoundException(id));
 
         if(customerDTO.getAccountNumber() != null){
             existingCustomer.setAccountNumber(customerDTO.getAccountNumber());
@@ -58,7 +59,7 @@ public class CustomerService {
 
     public void deleteCustomer(Long id){
         if(!customerRepository.existsById(id)){
-            throw new RuntimeException("Cliente no encontrado");
+            throw new CustomerNotFoundException(id);
         }
         customerRepository.deleteById(id);
     }

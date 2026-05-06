@@ -1,6 +1,6 @@
 package com.udea.bancoudea.mapper;
 
-import com.udea.bancoudea.DTO.CustomerDTO;
+import com.udea.bancoudea.dto.CustomerDTO;
 import com.udea.bancoudea.entity.Customer;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;

@@ -1,7 +1,8 @@
 package com.udea.bancoudea.controller;
 
-import com.udea.bancoudea.DTO.CustomerDTO;
+import com.udea.bancoudea.dto.CustomerDTO;
 import com.udea.bancoudea.service.CustomerService;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -34,7 +35,7 @@ public class CustomerController {
         if(customerDTO.getBalance() == null) {
             throw new IllegalArgumentException("Balance cannot be null");
         }
-        return ResponseEntity.ok(customerFacade.createCustomer(customerDTO));
+        return ResponseEntity.status(HttpStatus.CREATED).body(customerFacade.createCustomer(customerDTO));
     }
 
     //Actualizar un cliente existente

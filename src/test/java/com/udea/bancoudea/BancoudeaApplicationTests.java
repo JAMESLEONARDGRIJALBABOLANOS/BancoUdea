@@ -8,6 +8,7 @@ class BancoudeaApplicationTests {
 
 	@Test
 	void contextLoads() {
+		// Verifies that the Spring application context loads without errors
 	}
 
 }

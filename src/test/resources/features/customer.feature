@@ -13,7 +13,7 @@ Feature: Gestion de clientes
   Scenario: Obtener un cliente por ID inexistente
     Given que no existe un cliente con ID 99
     When se busca el cliente con ID 99
-    Then se lanza una excepcion con mensaje "Cliente no encontrado"
+    Then se lanza una excepcion con mensaje "Cliente no encontrado con id: 99"
 
   Scenario: Eliminar un cliente existente
     Given un cliente guardado con ID 1
@@ -23,4 +23,4 @@ Feature: Gestion de clientes
   Scenario: Eliminar un cliente inexistente
     Given que no existe un cliente con ID 99
     When se elimina el cliente con ID 99
-    Then se lanza una excepcion con mensaje "Cliente no encontrado"
+    Then se lanza una excepcion con mensaje "Cliente no encontrado con id: 99"

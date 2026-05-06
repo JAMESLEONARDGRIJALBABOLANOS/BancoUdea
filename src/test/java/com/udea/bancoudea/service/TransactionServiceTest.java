@@ -1,6 +1,6 @@
 package com.udea.bancoudea.service;
 
-import com.udea.bancoudea.DTO.TransactionDTO;
+import com.udea.bancoudea.dto.TransactionDTO;
 import com.udea.bancoudea.entity.Customer;
 import com.udea.bancoudea.entity.Transaction;
 import com.udea.bancoudea.repository.CustomerRepository;

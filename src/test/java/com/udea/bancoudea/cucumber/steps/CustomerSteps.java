@@ -1,6 +1,6 @@
 package com.udea.bancoudea.cucumber.steps;
 
-import com.udea.bancoudea.DTO.CustomerDTO;
+import com.udea.bancoudea.dto.CustomerDTO;
 import com.udea.bancoudea.entity.Customer;
 import com.udea.bancoudea.mapper.CustomerMapper;
 import com.udea.bancoudea.repository.CustomerRepository;
