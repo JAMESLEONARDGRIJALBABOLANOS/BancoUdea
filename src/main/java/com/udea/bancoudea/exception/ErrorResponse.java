@@ -1,20 +1,19 @@
 package com.udea.bancoudea.exception;
 
+import lombok.Getter;
+
 import java.time.LocalDateTime;
 
+@Getter
 public class ErrorResponse {
 
-    private int status;
-    private String message;
-    private LocalDateTime timestamp;
+    private final int status;
+    private final String message;
+    private final LocalDateTime timestamp;
 
     public ErrorResponse(int status, String message) {
         this.status = status;
         this.message = message;
         this.timestamp = LocalDateTime.now();
     }
-
-    public int getStatus() { return status; }
-    public String getMessage() { return message; }
-    public LocalDateTime getTimestamp() { return timestamp; }
 }
